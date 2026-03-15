@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="scaffolded-by" content="https://github.com/dart-lang/sdk">
+    <title>EDILAB</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="main.dart.js"></script>
+</head>
+
+<body>
+
+<article id="explain">
+    <h1>EDILAB</h1>
+</article>
+
+<div id="labo">
+
+    <div id="control">
+		<h3>Paramètres de l'expérience EDI</h3>
+        <fieldset>
+            <legend>Graines de départ</legend>
+			<ul class="colors">
+				<li>
+					<label for="sliderGroup0" id="sliderGroup0lbl" class="sliderLbl">rouge (2)</label>
+					<input id="sliderGroup0" type="range" min="0" max="100" value="2"/>
+				</li>
+				<li>
+					<label for="sliderGroup1" id="sliderGroup1lbl" class="sliderLbl">bleu (2)</label>
+					<input id="sliderGroup1" type="range" min="0" max="100" value="2"/>
+				</li>
+				<li>
+					<label for="sliderGroup2" id="sliderGroup2lbl" class="sliderLbl">jaune (0)</label>
+					<input id="sliderGroup2" type="range" min="0" max="100" value="0"/>
+				</li>
+				<li>
+					<label for="sliderGroup3" id="sliderGroup3lbl" class="sliderLbl">rose (0)</label>
+					<input id="sliderGroup3" type="range" min="0" max="100" value="0"/>
+				</li>
+				<li>
+					<label for="sliderGroup4" id="sliderGroup4lbl" class="sliderLbl">turquoise (0)</label>
+					<input id="sliderGroup4" type="range" min="0" max="100" value="0"/>
+				</li>
+				<li>
+					<label for="sliderGroup5" id="sliderGroup5lbl" class="sliderLbl">brun (0)</label>
+					<input id="sliderGroup5" type="range" min="0" max="100" value="0"/>
+				</li>
+				<li>
+					<label for="sliderGroup6" id="sliderGroup6lbl" class="sliderLbl">gris (0)</label>
+					<input id="sliderGroup6" type="range" min="0" max="100" value="0"/>
+				</li>
+			</ul>           
+            <label for="sliderByGroup" id="sliderByGroupLbl" class="sliderLbl">par groupes de (1) </label>
+            <input id="sliderByGroup" type="range" min="1" max="100" value="1"/>
+        </fieldset>
+
+        <fieldset>
+            <legend>EDI</legend>
+				<ul class="edichoices">
+					<li>
+						<label for="sliderEquality" id="sliderEqualityLbl" class="sliderLbl">Égalité (0%)</label>
+						<input id="sliderEquality" type="range" min="0" max="100" value="0"/>
+					</li>
+					<li>
+						<label for="inverseEquality" id="inverseEqualityLbl" class="checkLbl">Inverser égalité</label>
+						<input id="inverseEquality" type="checkbox" />
+					</li>
+					<li>
+						<label for="sliderDiversity" id="sliderDiversityLbl" class="sliderLbl">Diversité (0%)</label>
+						<input id="sliderDiversity" type="range" min="0" max="100" value="0"/>
+					</li>
+					<li>
+						<label for="sliderInclusion" id="sliderInclusionLbl" class="sliderLbl">Inclusion (0%)</label>
+						<input id="sliderInclusion" type="range" min="0" max="100" value="0"/>
+					</li>
+					<li>	
+						<label for="inverseInclusion" id="inverseInclusionLbl" class="checkLbl">Inverser inclusion</label>
+            					<input id="inverseInclusion" type="checkbox" />
+					</li>
+				</ul>
+        </fieldset>
+
+
+        <fieldset class="radioline">
+            <legend>Taille de l'expérience</legend>
+			<ul class="radiochoices">
+				<li>
+					<label for="scaleWorldXS">XS</label>
+					<input type="radio" name="scaleWorld" value="Small" id="scaleWorldXS" title="Extra Small" checked="checked">
+				</li>
+				<li>
+					<label for="scaleWorldS">S</label>
+					<input type="radio" name="scaleWorld" value="Small" id="scaleWorldS" title="Small">
+				</li>
+				<li>
+					<label for="scaleWorldM">M</label>
+					<input type="radio" name="scaleWorld" value="Medium" id="scaleWorldM" title="Medium">
+				</li>
+				<li>
+					<label for="scaleWorldL">L</label>
+					<input type="radio" name="scaleWorld" value="Large" id="scaleWorldL" title="Large">
+				</li>
+				<li>
+					<label for="scaleWorldXL">XL</label>
+					<input type="radio" name="scaleWorld" value="Large" id="scaleWorldXL" title="Extra Large">
+				</li>
+			</ul>
+            <label for="worldPortrait" id="worldPortraitLbl" class="checkLbl">Orientation portrait</label>
+            <input id="worldPortrait" type="checkbox" />
+
+        </fieldset>
+
+        <fieldset>
+            <legend>Par lots d'expériences</legend>
+		<ul class="batchchoices">
+			<li>
+            			<label for="batchMode" id="batchModeLbl" class="checkLbl">Mode par lots</label>
+            			<input id="batchMode" type="checkbox" />
+            		</li>
+			<li>
+            			<label for="batchIterations" id="batchIterationsLbl" class="numberLbl">Nombre d'expériences</label>
+            			<input id="batchIterations" type="number" min="1" max="200" value="1" class="numberInp"/>
+            		</li>
+			<li>
+            			<label for="batchAutoEnding" id="batchAutoEndingLbl" class="numberLbl">Fin auto inactivité (minutes)</label>
+            			<input id="batchAutoEnding" type="number" min="1" max="20" value="1" class="numberInp"/>
+            		</li>
+			<li>
+            			<label for="batchFinalEnding" id="batchFinalEndingLbl" class="numberLbl">Fin au plus tard (minutes)</label>
+            			<input id="batchFinalEnding" type="number" min="1" max="60" value="15" class="numberInp"/>
+			</li>        	
+		</ul>
+	</fieldset>
+
+    </div>
+    <div id="experience">
+		<h3>Visualisation</h3>
+        <div id="player">
+            <button id="startBtn">Démarrer</button>
+            <button id="pauseBtn">Pause</button>
+            <button id="stopBtn">Stop</button>
+            <button id="fullscreenBtn">Plein écran</button>
+            <button id="svgSaveBtn">Image SVG</button>
+            <span class="playerOption">
+                <label for="audioMode" id="audioModeLbl">Audio</label>
+                <input id="audioMode" type="checkbox" checked="checked"/>
+            </span>
+            <span class="playerOption">
+                <label for="blindMode" id="blindModeLbl">Aveugle</label>
+                <input id="blindMode" type="checkbox"/>
+            </span>
+
+        </div>
+
+        <p id="watcher">Durée de l'expérience 00:00:00</p>
+
+        <figure>
+            <canvas id="screen" width="480" height="270"></canvas>
+            <figcaption id="prompter" class="xsLaPrompt" aria-live="polite">Expérience non démarrée</figcaption>
+        </figure>
+
+
+        <fieldset class="radioline">
+            <legend>Fréquence du résumé textuel</legend>
+			<ul class="radiochoices">
+				<li>
+					<label for="resume20s">20 s.</label>
+					<input type="radio" name="resumeFreq" value="20" id="resume20s" title="20 secondes" checked="checked">
+				</li>
+				<li>
+					<label for="resume40s">40 s.</label>
+					<input type="radio" name="resumeFreq" value="40" id="resume40s" title="40 secondes">
+				</li>
+				<li>
+					<label for="resume60s">60 s.</label>
+					<input type="radio" name="resumeFreq" value="60" id="resume60s" title="60 secondes">
+				</li>
+				<li>
+					<label for="resume90s">90 s.</label>
+					<input type="radio" name="resumeFreq" value="90" id="resume90s" title="90 secondes">
+				</li>
+			</ul>
+            
+        </fieldset>
+
+    </div>
+
+</div>
+
+<div id="batchResult">
+    <h2>Résultats par lots</h2>
+    <table id="tableOutput" aria-label="Résultats par lots"></table>
+    <button id="csvSaveBtn">Enregistrer CSV</button>
+    <pre id="csvLinesOutput"></pre>
+    <ul id="screenResult"></ul>
+</div>
+
+
+<footer>
+    <hr>
+    <p id="notes">Application numérique accessible développée par Philippe Brouard, dans le cadre du 3ème concours culturel contre les discriminations, organisé par l'Université de Lorraine. Version 1.2, mars 2026</p>
+</footer>
+
+</body>
+</html>

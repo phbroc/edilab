@@ -1,0 +1,17 @@
+name: edilab
+description: Cellular automaton for simulating DEI Diversity Equity Inclusion
+version: 1.2.0
+# repository: https://github.com/phbroc/edilab
+
+environment:
+  sdk: '>=2.19.6 <3.0.0'
+
+# dependencies:
+#   path: ^1.8.0
+
+dev_dependencies:
+  build_runner: ^2.3.0
+  build_web_compilers: ^3.2.0
+  lints: ^2.0.0
+dependencies:
+  vector_math: ^2.1.4
