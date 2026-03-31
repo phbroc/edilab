@@ -7,7 +7,7 @@ import 'dart:math';
 import 'package:vector_math/vector_math.dart';
 
 
-class AcediApp {
+class EdilabApp {
   bool modeDebug = false;
   List<Sunflower> sunflowers = <Sunflower>[];
   List<Sunflower> newSunflowers = <Sunflower>[];
@@ -104,20 +104,18 @@ class AcediApp {
   late int iterationNumber;
   bool isBatch = false;
 
-  static final AcediApp _singleton = AcediApp._internal();
+  static final EdilabApp _singleton = EdilabApp._internal();
 
-  factory AcediApp() {
+  factory EdilabApp() {
     return _singleton;
   }
 
-  AcediApp._internal();
+  EdilabApp._internal();
 
-  void init(String idCanvas, num scales, num scalew) {
-    _canvas = querySelector(idCanvas) as CanvasElement;
+  void init() {
+    _canvas = querySelector("#screen") as CanvasElement;
     _canvas.style.backgroundColor = "black";
     _ctx2d = _canvas.context2D;
-    _scaleScreen = scales;
-    _scaleWorld = scalew;
 
     scaleScreen();
 
@@ -318,7 +316,6 @@ class AcediApp {
     }
 
     autoEndFrom = 0;
-    autoEndMinutes = 0;
     autoEndMass = 0;
     stopwatch.reset();
     stopwatch.start();
@@ -399,7 +396,7 @@ class AcediApp {
     String freeSeedsInfo = "";
     if (maxColorIndex >= 0) {
       freeSeedsColor = Seed.colorsFr[maxColorIndex];
-      freeSeedsInfo = "Le milieu libre contient $freeSeedsTotal graines de $nbColors couleurs.";
+      freeSeedsInfo = "Le milieu libre contient $freeSeedsTotal graines de $nbColors couleurs. La couleur majoritaire est $freeSeedsColor.";
     }
 
     prompter.innerText = "Démarrage de l'expérience. $freeSeedsInfo";
@@ -489,7 +486,6 @@ class AcediApp {
       }
 
     }
-
     // verifier alors si on a dépassé le temps maximum autorisé finalEnding...
     if ((!autoEndDetected) && (isBatch) && (stopwatch.elapsed.inMinutes >= finalEndingMinutes)) {
       autoEndDetected = true;
@@ -565,7 +561,7 @@ class AcediApp {
       if (pauseOn) status = "En pause.";
       prompter.innerText = "$status $freeSeedsInfo $maxSunflower1Info $maxSunflower2Info $maxSunflower3Info";
     }
-    else {
+    else if (!pauseOn) {
       pause(MouseEvent(""));
       prompter.innerText = "Fin automatique de l'expérience.";
       autoEndProcess(maxSunflower1Csv, maxSunflower2Csv, maxSunflower3Csv);
@@ -1044,20 +1040,6 @@ class AcediApp {
       double power = (1.5+(Random().nextDouble()))*(sqrt(_height) / (10*radius));
       Vector2 launchPosition = position + Vector2((radius)*cos(orientation), (radius)*sin(orientation));
 
-      /*
-      if ((launchPosition.x < 0) || (launchPosition.x > _width)) {
-
-      }
-      if ((launchPosition.y < 0) || (launchPosition.y > _height)) {
-
-      }
-      */
-      /*
-      launchPosition.x = launchPosition.x%_width;
-      launchPosition.y = launchPosition.y%_height;
-
-       */
-
       final Sunflower sf = Sunflower(sunflowerIndex++, _ctx2d);
       newSunflowers.add(sf);
       sf.position = launchPosition;
@@ -1090,71 +1072,69 @@ class AcediApp {
           if ((sf.index < sh.index) && (sh.birthCountdown == 0) && (!sh.purgeOn) && (!sf.fusionOn) && (!sf.purgeOn) && (!sh.fusionOn)) {
             int hit = sf.hitTestSunflower(sh);
             if (hit != 0) {
-              // print("hit $hit: ${sf.index} / ${sh.index}");
-              if (hit >= 1) {
-                // cas du rebond élestique
-                // sh.velocity = hit;
-                //sh.substractSeeds(1);
-                if (hit == 2) {
-                  if (sf.mass >= sh.mass) {
-                    sf.fusionOn = true;
-                    sf.birthCountdown = 5;
-                    sf.waitingSeeds = sh.seeds;
-                    // calcul de la diversité avant la fusion permet de savoir la couleur dominante.
-                    sf.diversity = sf.calcDiversity(null);
-                    sf.seedsToAddFirst = (sf.waitingSeeds.length * (1 - Sunflower.equalityMax)).round();
-                    // l'échange des index sert en cas d'arrêt prématuré de la fusion
-                    sf.relativeIndex = sh.index;
-                    sh.relativeIndex = sf.index;
-                    sh.birthCountdown = 5;
-                    sh.purgeOn = true;
-                    ticSound.volume = max(0.05, min(1, sh.mass/20));
-                  }
-                  else {
-                    sh.fusionOn = true;
-                    sh.birthCountdown = 5;
-                    sh.waitingSeeds = sf.seeds;
-                    // calcul de la diversité avant la fusion permet de savoir la couleur dominante.
-                    sh.diversity = sh.calcDiversity(null);
-                    sh.seedsToAddFirst = (sh.waitingSeeds.length * (1 - Sunflower.equalityMax)).round();
-                    // l'échange des index sert en cas d'arrêt prématuré de la fusion
-                    sh.relativeIndex = sf.index;
-                    sf.relativeIndex = sh.index;
-                    sf.birthCountdown = 5;
-                    sf.purgeOn = true;
-                    ticSound.volume = max(0.05, min(1, sf.mass/20));
-                  }
-                  if (audioOn) ticSound.play();
-                }
-                else if (hit == 3) {
-                  int lastColor = -1;
-                  if (sh.mass > 0) lastColor = sh.seeds.last.colorIndex;
-                  int newFriction = (Random().nextDouble()).round();
-                  if ((newFriction > 0) && (lastColor >= 0)) launchNewSunflowers(newFriction, sh.position, sh.radius + 5, lastColor, lastColor);
-                  lastColor = -1;
-                  if (sf.mass > 0) lastColor = sf.seeds.last.colorIndex;
-                  newFriction = (Random().nextDouble()).round();
-                  if ((newFriction > 0) && (lastColor >= 0)) launchNewSunflowers(newFriction, sf.position, sf.radius + 5, lastColor, lastColor);
-                  sh.substractSeeds(1);
-                  sf.substractSeeds(1);
-
-                  tocSound.volume = max(0.05, min(1, min(sh.mass, sf.mass)/20));
-                  if (audioOn) tocSound.play();
+              // cas du rebond élestique avec trois possibilités
+              // cas de la fusion
+              if (hit == 2) {
+                if (sf.mass >= sh.mass) {
+                  sf.fusionOn = true;
+                  sf.birthCountdown = 5;
+                  sf.waitingSeeds = sh.seeds;
+                  // calcul de la diversité avant la fusion permet de savoir la couleur dominante.
+                  sf.diversity = sf.calcDiversity(null);
+                  sf.seedsToAddFirst = (sf.waitingSeeds.length * (1 - Sunflower.equalityMax)).round();
+                  // l'échange des index sert en cas d'arrêt prématuré de la fusion
+                  sf.relativeIndex = sh.index;
+                  sh.relativeIndex = sf.index;
+                  sh.birthCountdown = 5;
+                  sh.purgeOn = true;
+                  ticSound.volume = max(0.05, min(1, sh.mass/20));
                 }
                 else {
-                  tacSound.volume = max(0.05, min(1, min(sh.mass, sf.mass)/20));
-                  if (audioOn) tacSound.play();
-                  if (sh.mass < 3) {
-                    emptySfIndex.add(sh.index);
-                  }
+                  sh.fusionOn = true;
+                  sh.birthCountdown = 5;
+                  sh.waitingSeeds = sf.seeds;
+                  // calcul de la diversité avant la fusion permet de savoir la couleur dominante.
+                  sh.diversity = sh.calcDiversity(null);
+                  sh.seedsToAddFirst = (sh.waitingSeeds.length * (1 - Sunflower.equalityMax)).round();
+                  // l'échange des index sert en cas d'arrêt prématuré de la fusion
+                  sh.relativeIndex = sf.index;
+                  sf.relativeIndex = sh.index;
+                  sf.birthCountdown = 5;
+                  sf.purgeOn = true;
+                  ticSound.volume = max(0.05, min(1, sf.mass/20));
+                }
+                if (audioOn) ticSound.play();
+              }
+              // cas du rejet
+              else if (hit == 3) {
+                int lastColor = -1;
+                if (sh.mass > 0) lastColor = sh.seeds.last.colorIndex;
+                int newFriction = (Random().nextDouble()).round();
+                if ((newFriction > 0) && (lastColor >= 0)) launchNewSunflowers(newFriction, sh.position, sh.radius + 5, lastColor, lastColor);
+                lastColor = -1;
+                if (sf.mass > 0) lastColor = sf.seeds.last.colorIndex;
+                newFriction = (Random().nextDouble()).round();
+                if ((newFriction > 0) && (lastColor >= 0)) launchNewSunflowers(newFriction, sf.position, sf.radius + 5, lastColor, lastColor);
+                sh.substractSeeds(1);
+                sf.substractSeeds(1);
+
+                tocSound.volume = max(0.05, min(1, min(sh.mass, sf.mass)/20));
+                if (audioOn) tocSound.play();
+              }
+              // cas du hit neutre car la plus sunflower taille max.
+              else {
+                tacSound.volume = max(0.05, min(1, min(sh.mass, sf.mass)/20));
+                if (audioOn) tacSound.play();
+                // pour supprimer les tout petits groupes qui restent.
+                if (sh.mass < 3) {
+                  emptySfIndex.add(sh.index);
                 }
               }
             }
           }
         }
+
         // traiter la purge ou l'inclusion
-
-
 
         if (sf.fusionOn) {
           if (sf.radius <= Sunflower.radiusMax) {
@@ -1223,8 +1203,6 @@ class AcediApp {
         if (sf.mass > 0) {
           sf.draw();
         }
-
-        //int size = sf.seeds.length; il faut simplement utiliser la masse
 
         if (sf.mass >= Sunflower.currentMaxSize) {
           Sunflower.currentMaxSize3 = Sunflower.currentMaxSize2;

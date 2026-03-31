@@ -97,7 +97,7 @@ class Sunflower {
   }
 
   void substractSeeds(int maxSeeds) {
-    // subtilité il ne faut pas mettre <= sinon il manque une seed pour finir la fusion, mais si on enlève le = alors ça prolifère à fond en cas de diversité 0 !!
+    // subtilité il faut mettre <= pour que le processus soit complet
     if (seeds.length <= maxSeeds) {
       maxSeeds = seeds.length;
       if (purgeOn) {
@@ -113,10 +113,14 @@ class Sunflower {
       for (var i = 0; i < maxSeeds; i++) {
         // il y a au minimum une seed dans le sunflower sauf en cas de purge.
         if (seeds.length > 1) {
-          groups[seeds.last.colorIndex] -= 1;
           // subtilité, en cas de purge active il faut attendre l'action de fusion dans l'autre sunflower (qui peut arriver plus tard dans la boucle de traitemennts) et c'est alors seulement cette action qui fera le ménage en référençant la liste du sunflower à purger, sinon il y aura une perte de données avec la fusion. C'est sans doute ce qui expliquait que j'avais des sunflowers qui disparaissaient tout seuls avant de corriger cette anomalie
           if (!purgeOn) {
+            groups[seeds.last.colorIndex] -= 1;
             seeds.removeLast();
+          }
+          else {
+            // On ne peut pas utiliser last car l'action remove est maintenant dépendante de la fusion à un autre moment, mais il faut quand même bien mettre à jour les groupes.
+            groups[seeds[seeds.length-1-i].colorIndex] -= 1;
           }
           mass -= 1.0;
         }
@@ -272,7 +276,7 @@ class Sunflower {
   }
 
   int hitTestSunflower(Sunflower sf) {
-    // distance alternatives corrigées selon les neuf cases qui entourent l'écran, dans le sens horaire
+    // distance alternatives corrigées selon les huit cases qui entourent l'écran, dans le sens horaire
     List<double> distances = <double>[];
     distances.add(position.distanceToSquared(sf.position));
     distances.add(position.distanceToSquared(sf.position + Vector2(0, -1*positionMax.y)));

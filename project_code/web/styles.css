@@ -76,7 +76,7 @@ ul.radiochoices>li>input {
   margin-left: 0;
 }
 
-#intro, #explain {
+#intro, .explain {
   padding: 1em;
 }
 

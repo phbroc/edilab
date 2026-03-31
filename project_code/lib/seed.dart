@@ -1,5 +1,3 @@
-import 'dart:svg';
-
 import 'sunflower.dart';
 import 'dart:html';
 import 'dart:math';
