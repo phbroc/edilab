@@ -12,3 +12,8 @@
 - Bugfix with fusion sunflowers
 - Add batch process
 - Add SVG export
+
+## 1.2.2
+
+- Bugfix with fusion sunflowers
+- Bugfix with diversity calculate
