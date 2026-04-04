@@ -17,3 +17,8 @@
 
 - Bugfix with fusion sunflowers
 - Bugfix with diversity calculate
+
+## 1.2.3
+
+- Bugfix with count sunflowers at the end
+- Recalculate groups of colors when purge stopped before the end

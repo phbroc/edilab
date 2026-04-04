@@ -135,6 +135,16 @@ class Sunflower {
     relativeIndex = null;
   }
 
+  // quand la purge est arrêtée avant la fin, il reste des seeds et des couleurs, mais il faut vérifier le calcul en recomptant
+  void recountSeeds() {
+    mass = 0;
+    groups = [0, 0, 0, 0, 0, 0, 0];
+    for (Seed s in seeds) {
+      mass += 1;
+      groups[s.colorIndex] += 1;
+    }
+  }
+
   void fusionSeeds(int maxSeeds) {
     if (waitingSeeds.length <= maxSeeds) {
       maxSeeds = waitingSeeds.length;

@@ -705,8 +705,10 @@ class EdilabApp {
   void autoEndProcess(String max1csv, String max2csv, String max3csv) {
     List<int> allColors = [0, 0, 0, 0, 0, 0, 0];
     double massTotal = 0;
+    int nbGroups = 0;
     for (Sunflower sf in sunflowers) {
       massTotal += sf.mass;
+      if (sf.mass > 1) nbGroups += 1;
       int i = 0;
       for (int color in sf.groups) {
         allColors[i] += color;
@@ -744,7 +746,7 @@ class EdilabApp {
     final max1headers = "groupe 1 couleur;groupe 1 masse;groupe 1 rayon;groupe 1 diversité";
     final max2headers = "groupe 2 couleur;groupe 2 masse;groupe 2 rayon;groupe 2 diversité";
     final max3headers = "groupe 3 couleur;groupe 3 masse;groupe 3 rayon;groupe 3 diversité";
-    final endingGlobals = "$sizeSetting;${sunflowers.length};${massTotal.round()};${stopwatch.elapsed.inMinutes};${dayhour.toIso8601String()}";
+    final endingGlobals = "$sizeSetting;$nbGroups;${massTotal.round()};${stopwatch.elapsed.inMinutes};${dayhour.toIso8601String()}";
     final csvHeaders = "$initialGroupsHeaders;$ediSettingsHeaders;$endingGroupsHeaders;$endingGlobalsHeaders;$max1headers;$max2headers;$max3headers";
     final csvLine = "$initialGroups;$ediSettings;$endingGroups;$endingGlobals;$max1csv;$max2csv;$max3csv";
 
@@ -1172,15 +1174,6 @@ class EdilabApp {
               }
             }
           }
-          /*
-          if (sf.radius <= Sunflower.radiusMax) {
-
-          }
-          else {
-            sf.fusionOn = false;
-            //sf.waitingSeeds.clear();
-          }
-          */
         }
         else if (sf.purgeOn) {
           if (sf.relativeIndex != null) {
@@ -1192,6 +1185,9 @@ class EdilabApp {
             // pour terminer proprement il faut vérifier que tout n'a pas déjà été aspiré juste avant.
             if (sf.seeds.isEmpty) {
               sf.emptySeeds();
+            }
+            else {
+              sf.recountSeeds();
             }
           }
         }
