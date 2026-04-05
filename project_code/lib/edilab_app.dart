@@ -827,7 +827,7 @@ class EdilabApp {
       ..insertCell(18).text = allColors[5].toString()
       ..insertCell(19).text = allColors[6].toString()
       ..insertCell(20).text = sizeSetting
-      ..insertCell(21).text = sunflowers.length.toString()
+      ..insertCell(21).text = nbGroups.toString()
       ..insertCell(22).text = massTotal.round().toString()
       ..insertCell(23).text = stopwatch.elapsed.inMinutes.toString()
       ..insertCell(24).text = dayhour.toIso8601String()
