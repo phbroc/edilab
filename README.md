@@ -2,6 +2,8 @@
 
 This digital application is an experiment in the form of a cellular automaton. It simulates interactions between colored seeds and clusters of seeds (sunflowers). These interactions are governed by variable DEI parameters (diversity, equity, and inclusion). It’s like a mini-lab, as the range of possible experiments is vast, and surprises and discoveries are just a few clicks away.
 
+![Screenshot of the experiment](edilabScreenshot2.png "Screenshot of the experiment")
+
 ## How can we make use of this experience?
 
 Online version is hosted in my [EDILAB website](https://edilab.philippebrouard.fr). You can also build your own version, using the source code in the project_code folder. 
