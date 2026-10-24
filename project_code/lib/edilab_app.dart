@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:js_interop';
 
 import 'package:edilab/sunflower.dart';
 import 'package:edilab/seed.dart';
-import 'dart:html';
+import 'package:web/web.dart' as web;
 import 'dart:math';
 import 'package:vector_math/vector_math.dart';
 
@@ -13,16 +14,15 @@ class EdilabApp {
   List<Sunflower> newSunflowers = <Sunflower>[];
   List<int> emptySfIndex = <int>[];
   List<int> freeSeeds = [0, 0, 0, 0, 0, 0, 0];
+  List<int> colorSfLastingSeconds = [-1, -1, -1, -1, -1, -1, -1];
   int _width = 0;
   int _height = 0;
-  double _centerX = 0.0;
-  double _centerY = 0.0;
   num _scaleWorld = 1;
   num _scaleScreen = 1;
   int sunflowerIndex = 0;
 
-  late CanvasElement _canvas;
-  late CanvasRenderingContext2D _ctx2d;
+  late web.HTMLCanvasElement _canvas;
+  late web.CanvasRenderingContext2D _ctx2d;
   num _renderTime = DateTime.now().millisecondsSinceEpoch;
   Timer? prompting;
   Timer? starting;
@@ -31,75 +31,76 @@ class EdilabApp {
   final stopwatch = Stopwatch();
   bool audioOn = true;
 
-  final HtmlElement prompter = querySelector("#prompter") as HtmlElement;
-  final ParagraphElement watcher = querySelector("#watcher") as ParagraphElement;
+  final web.HTMLElement prompter = web.document.querySelector("#prompter") as web.HTMLElement;
+  final web.HTMLParagraphElement watcher = web.document.querySelector("#watcher") as web.HTMLParagraphElement;
 
-  final LabelElement sliderGroup0lbl = querySelector("#sliderGroup0lbl") as LabelElement;
-  final RangeInputElement sliderGroup0 = querySelector("#sliderGroup0") as RangeInputElement;
-  final LabelElement sliderGroup1lbl = querySelector("#sliderGroup1lbl") as LabelElement;
-  final RangeInputElement sliderGroup1 = querySelector("#sliderGroup1") as RangeInputElement;
-  final LabelElement sliderGroup2lbl = querySelector("#sliderGroup2lbl") as LabelElement;
-  final RangeInputElement sliderGroup2 = querySelector("#sliderGroup2") as RangeInputElement;
-  final LabelElement sliderGroup6lbl = querySelector("#sliderGroup6lbl") as LabelElement;
-  final RangeInputElement sliderGroup3 = querySelector("#sliderGroup3") as RangeInputElement;
-  final LabelElement sliderGroup3lbl = querySelector("#sliderGroup3lbl") as LabelElement;
-  final RangeInputElement sliderGroup4 = querySelector("#sliderGroup4") as RangeInputElement;
-  final LabelElement sliderGroup4lbl = querySelector("#sliderGroup4lbl") as LabelElement;
-  final RangeInputElement sliderGroup5 = querySelector("#sliderGroup5") as RangeInputElement;
-  final LabelElement sliderGroup5lbl = querySelector("#sliderGroup5lbl") as LabelElement;
-  final RangeInputElement sliderGroup6 = querySelector("#sliderGroup6") as RangeInputElement;
-  final LabelElement sliderByGroupLbl = querySelector("#sliderByGroupLbl") as LabelElement;
-  final RangeInputElement sliderByGroup = querySelector("#sliderByGroup") as RangeInputElement;
+  final web.HTMLLabelElement sliderGroup0lbl = web.document.querySelector("#sliderGroup0lbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderGroup0 = (web.document.querySelector("#sliderGroup0") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderGroup1lbl = web.document.querySelector("#sliderGroup1lbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderGroup1 = (web.document.querySelector("#sliderGroup1") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderGroup2lbl = web.document.querySelector("#sliderGroup2lbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderGroup2 = (web.document.querySelector("#sliderGroup2") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderGroup6lbl = web.document.querySelector("#sliderGroup6lbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderGroup3 = (web.document.querySelector("#sliderGroup3") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderGroup3lbl = web.document.querySelector("#sliderGroup3lbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderGroup4 = (web.document.querySelector("#sliderGroup4") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderGroup4lbl = web.document.querySelector("#sliderGroup4lbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderGroup5 = (web.document.querySelector("#sliderGroup5") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderGroup5lbl = web.document.querySelector("#sliderGroup5lbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderGroup6 = (web.document.querySelector("#sliderGroup6") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderByGroupLbl = web.document.querySelector("#sliderByGroupLbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderByGroup = (web.document.querySelector("#sliderByGroup") as web.HTMLInputElement)..type = "range";
 
-  final LabelElement sliderEqualityLbl = querySelector("#sliderEqualityLbl") as LabelElement;
-  final RangeInputElement sliderEquality = querySelector("#sliderEquality") as RangeInputElement;
-  final CheckboxInputElement inverseEquality = querySelector("#inverseEquality") as CheckboxInputElement;
-  final LabelElement sliderDiversityLbl = querySelector("#sliderDiversityLbl") as LabelElement;
-  final RangeInputElement sliderDiversity = querySelector("#sliderDiversity") as RangeInputElement;
-  final LabelElement sliderInclusionLbl = querySelector("#sliderInclusionLbl") as LabelElement;
-  final RangeInputElement sliderInclusion = querySelector("#sliderInclusion") as RangeInputElement;
-  final CheckboxInputElement inverseInclusion = querySelector("#inverseInclusion") as CheckboxInputElement;
+  final web.HTMLLabelElement sliderEqualityLbl = web.document.querySelector("#sliderEqualityLbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderEquality = (web.document.querySelector("#sliderEquality") as web.HTMLInputElement)..type = "range";
+  final web.HTMLInputElement inverseEquality = (web.document.querySelector("#inverseEquality") as web.HTMLInputElement)..type = "checkbox";
+  final web.HTMLLabelElement sliderDiversityLbl = web.document.querySelector("#sliderDiversityLbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderDiversity = (web.document.querySelector("#sliderDiversity") as web.HTMLInputElement)..type = "range";
+  final web.HTMLLabelElement sliderInclusionLbl = web.document.querySelector("#sliderInclusionLbl") as web.HTMLLabelElement;
+  final web.HTMLInputElement sliderInclusion = (web.document.querySelector("#sliderInclusion") as web.HTMLInputElement)..type = "range";
+  final web.HTMLInputElement inverseInclusion = (web.document.querySelector("#inverseInclusion") as web.HTMLInputElement)..type = "checkbox";
 
-  final RadioButtonInputElement scaleWorldXS = querySelector("#scaleWorldXS") as RadioButtonInputElement;
-  final RadioButtonInputElement scaleWorldS = querySelector("#scaleWorldS") as RadioButtonInputElement;
-  final RadioButtonInputElement scaleWorldM = querySelector("#scaleWorldM") as RadioButtonInputElement;
-  final RadioButtonInputElement scaleWorldL = querySelector("#scaleWorldL") as RadioButtonInputElement;
-  final RadioButtonInputElement scaleWorldXL = querySelector("#scaleWorldXL") as RadioButtonInputElement;
-  final CheckboxInputElement worldPortrait = querySelector("#worldPortrait") as CheckboxInputElement;
+  final web.HTMLInputElement scaleWorldXS = (web.document.querySelector("#scaleWorldXS") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement scaleWorldS = (web.document.querySelector("#scaleWorldS") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement scaleWorldM = (web.document.querySelector("#scaleWorldM") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement scaleWorldL = (web.document.querySelector("#scaleWorldL") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement scaleWorldXL = (web.document.querySelector("#scaleWorldXL") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement worldPortrait = (web.document.querySelector("#worldPortrait") as web.HTMLInputElement)..type = "checkbox";
 
-  final RadioButtonInputElement resume20s = querySelector("#resume20s") as RadioButtonInputElement;
-  final RadioButtonInputElement resume40s = querySelector("#resume40s") as RadioButtonInputElement;
-  final RadioButtonInputElement resume60s = querySelector("#resume60s") as RadioButtonInputElement;
-  final RadioButtonInputElement resume90s = querySelector("#resume90s") as RadioButtonInputElement;
+  final web.HTMLInputElement resume20s = (web.document.querySelector("#resume20s") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement resume40s = (web.document.querySelector("#resume40s") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement resume60s = (web.document.querySelector("#resume60s") as web.HTMLInputElement)..type = "radio";
+  final web.HTMLInputElement resume90s = (web.document.querySelector("#resume90s") as web.HTMLInputElement)..type = "radio";
 
-  final ButtonElement startBtn = querySelector("#startBtn") as ButtonElement;
-  final ButtonElement pauseBtn = querySelector("#pauseBtn") as ButtonElement;
-  final ButtonElement stopBtn = querySelector("#stopBtn") as ButtonElement;
-  final ButtonElement fullscreenBtn = querySelector("#fullscreenBtn") as ButtonElement;
-  final ButtonElement svgSaveBtn = querySelector("#svgSaveBtn") as ButtonElement;
-  final CheckboxInputElement audioMode = querySelector("#audioMode") as CheckboxInputElement;
+  final web.HTMLButtonElement startBtn = web.document.querySelector("#startBtn") as web.HTMLButtonElement;
+  final web.HTMLButtonElement pauseBtn = web.document.querySelector("#pauseBtn") as web.HTMLButtonElement;
+  final web.HTMLButtonElement stopBtn = web.document.querySelector("#stopBtn") as web.HTMLButtonElement;
+  final web.HTMLButtonElement fullscreenBtn = web.document.querySelector("#fullscreenBtn") as web.HTMLButtonElement;
+  final web.HTMLButtonElement svgSaveBtn = web.document.querySelector("#svgSaveBtn") as web.HTMLButtonElement;
+  final web.HTMLInputElement audioMode = (web.document.querySelector("#audioMode") as web.HTMLInputElement)..type = "checkbox";
 
 
-  final CheckboxInputElement blindMode = querySelector("#blindMode") as CheckboxInputElement;
+  final web.HTMLInputElement blindMode = (web.document.querySelector("#blindMode") as web.HTMLInputElement)..type = "checkbox";
 
-  final CheckboxInputElement batchMode = querySelector("#batchMode") as CheckboxInputElement;
-  final NumberInputElement batchIterations = querySelector("#batchIterations") as NumberInputElement;
-  final NumberInputElement batchAutoEnding = querySelector("#batchAutoEnding") as NumberInputElement;
-  final NumberInputElement batchFinalEnding = querySelector("#batchFinalEnding") as NumberInputElement;
-  final HtmlElement csvLinesOutput = querySelector("#csvLinesOutput") as HtmlElement;
-  final TableElement tableOutput = querySelector("#tableOutput") as TableElement;
-  final ButtonElement csvSaveBtn = querySelector("#csvSaveBtn") as ButtonElement;
-  final DivElement batchResult = querySelector("#batchResult") as DivElement;
-  final UListElement screenResult = querySelector("#screenResult") as UListElement;
+  final web.HTMLInputElement batchMode = (web.document.querySelector("#batchMode") as web.HTMLInputElement)..type = "checkbox";
+  final web.HTMLInputElement batchIterations = (web.document.querySelector("#batchIterations") as web.HTMLInputElement)..type = "number";
+  final web.HTMLInputElement batchAutoEnding = (web.document.querySelector("#batchAutoEnding") as web.HTMLInputElement)..type = "number";
+  final web.HTMLInputElement batchFinalEnding = (web.document.querySelector("#batchFinalEnding") as web.HTMLInputElement)..type = "number";
+  final web.HTMLHtmlElement csvLinesOutput = web.document.querySelector("#csvLinesOutput") as web.HTMLHtmlElement;
+  final web.HTMLTableElement tableOutput = web.document.querySelector("#tableOutput") as web.HTMLTableElement;
+  final web.HTMLButtonElement csvSaveBtn = web.document.querySelector("#csvSaveBtn") as web.HTMLButtonElement;
+  final web.HTMLDivElement batchResult = web.document.querySelector("#batchResult") as web.HTMLDivElement;
+  final web.HTMLUListElement screenResult = web.document.querySelector("#screenResult") as web.HTMLUListElement;
 
-  late AudioElement tacSound;
-  late AudioElement ticSound;
-  late AudioElement tocSound;
+  late web.HTMLAudioElement tacSound;
+  late web.HTMLAudioElement ticSound;
+  late web.HTMLAudioElement tocSound;
 
   late int autoEndFrom;
   late int autoEndMinutes;
   late int autoEndMass;
   late int finalEndingMinutes;
+  late int timeTo100pctMinutes;
   late int iterationsMax;
   late int iterationNumber;
   bool isBatch = false;
@@ -113,7 +114,7 @@ class EdilabApp {
   EdilabApp._internal();
 
   void init() {
-    _canvas = querySelector("#screen") as CanvasElement;
+    _canvas = web.document.querySelector("#screen") as web.HTMLCanvasElement;
     _canvas.style.backgroundColor = "black";
     _ctx2d = _canvas.context2D;
 
@@ -145,68 +146,68 @@ class EdilabApp {
     stopBtn.onClick.listen(stop);
     fullscreenBtn.onClick.listen(goFullscreen);
     svgSaveBtn.onClick.listen(svgDownload);
-    svgSaveBtn.hidden = true;
+    svgSaveBtn.hidden = true.toJS;
     audioMode.onClick.listen((event) {audioOn = !audioOn;});
     blindMode.onClick.listen((event) {Sunflower.blindOn = !Sunflower.blindOn;});
 
     csvSaveBtn.onClick.listen(csvDownload);
-    csvSaveBtn.hidden = true;
-    batchResult.hidden = true;
+    csvSaveBtn.hidden = true.toJS;
+    batchResult.hidden = true.toJS;
 
-    tacSound = AudioElement("assets/tac.mp3");
-    ticSound = AudioElement("assets/tic.mp3");
-    tocSound = AudioElement("assets/toc.mp3");
+    tacSound = web.HTMLAudioElement()..src = "assets/tac.mp3";
+    ticSound = web.HTMLAudioElement()..src = "assets/tic.mp3";
+    tocSound = web.HTMLAudioElement()..src = "assets/toc.mp3";
 
-    window.animationFrame.then(refreshScreen);
-    window.onKeyPress.listen((event) {keyboardAction(event);});
+    web.window.requestAnimationFrame(refreshScreen.toJS);
+    web.window.onKeyPress.listen((event) {keyboardAction(event);});
 
   }
 
   void scaleScreen() {
-    if (scaleWorldXL.checked!) {
+    if (scaleWorldXL.checked) {
       _scaleWorld = 0.6;
       _scaleScreen = 4;
-      if (worldPortrait.checked!) {
+      if (worldPortrait.checked) {
         prompter.className = "xlPoPrompt";
       }
       else {
         prompter.className = "xlLaPrompt";
       }
     }
-    else if (scaleWorldL.checked!) {
+    else if (scaleWorldL.checked) {
       _scaleWorld = 0.8;
       _scaleScreen = 2.66;
-      if (worldPortrait.checked!) {
+      if (worldPortrait.checked) {
         prompter.className = "lPoPrompt";
       }
       else {
         prompter.className = "lLaPrompt";
       }
     }
-    else if (scaleWorldM.checked!) {
+    else if (scaleWorldM.checked) {
       _scaleWorld = 1;
       _scaleScreen = 2;
-      if (worldPortrait.checked!) {
+      if (worldPortrait.checked) {
         prompter.className = "mPoPrompt";
       }
       else {
         prompter.className = "mLaPrompt";
       }
     }
-    else if (scaleWorldS.checked!) {
+    else if (scaleWorldS.checked) {
       _scaleWorld = 1.5;
       _scaleScreen = 1.33;
-      if (worldPortrait.checked!) {
+      if (worldPortrait.checked) {
         prompter.className = "sPoPrompt";
       }
       else {
         prompter.className = "sLaPrompt";
       }
     }
-    else if (scaleWorldXS.checked!) {
+    else if (scaleWorldXS.checked) {
       _scaleWorld = 3;
       _scaleScreen = 1;
-      if (worldPortrait.checked!) {
+      if (worldPortrait.checked) {
         prompter.className = "xsPoPrompt";
       }
       else {
@@ -216,60 +217,67 @@ class EdilabApp {
 
     _width = (480 * _scaleScreen).round();
     _height = (270 * _scaleScreen).round();
-    if (worldPortrait.checked!) {
+    if (worldPortrait.checked) {
       int h = _width;
       _width = _height;
       _height = h;
     }
-    _centerX = (_width/2);
-    _centerY = (_height/2);
+    
     _canvas.width = _width;
     _canvas.height = _height;
-    Sunflower.EFFECTDIM = max(1, _scaleScreen * _scaleWorld);
+    Sunflower.effectDim = max(1, _scaleScreen * _scaleWorld);
     Sunflower.positionMax = Vector2(_width.toDouble(), _height.toDouble());
     Seed.positionMax = Vector2(_width.toDouble(), _height.toDouble());
     // for the world
-    Sunflower.SPIRALDIM = 4 * _scaleWorld * _scaleScreen;
-    Seed.SEED_RADIUS = max(1, 3 * _scaleWorld * _scaleScreen);
-    Sunflower.radiusMax = (min(_height, _width) / 2) + Seed.SEED_RADIUS;
+    Sunflower.spiralDim = 4 * _scaleWorld * _scaleScreen;
+    Seed.seedRadius = max(1, 3 * _scaleWorld * _scaleScreen);
+    Sunflower.radiusMax = (min(_height, _width) / 2) + Seed.seedRadius;
   }
 
-  void promptSet(MouseEvent? event) {
+  void promptSet(web.MouseEvent? event) {
     if ((prompting != null) && (prompting!.isActive)) {
       prompting!.cancel();
     }
 
     int resumeFreq = 20;
 
-    if (resume20s.checked!) {
+    if (resume20s.checked) {
       resumeFreq = 20;
     }
-    else if (resume40s.checked!) {
+    else if (resume40s.checked) {
       resumeFreq = 40;
     }
-    else if (resume60s.checked!) {
+    else if (resume60s.checked) {
       resumeFreq = 60;
     }
-    else if (resume90s.checked!) {
+    else if (resume90s.checked) {
       resumeFreq = 90;
     }
 
     prompting = Timer.periodic(Duration(seconds: resumeFreq), promptSituation);
   }
 
-  void start(MouseEvent event) {
-    stop(MouseEvent(""));
+  void start(web.MouseEvent event) {
+    stop(web.MouseEvent(""));
 
     scaleScreen();
 
-    int launch0 = int.parse(sliderGroup0.value!);
-    int launch1 = int.parse(sliderGroup1.value!);
-    int launch2 = int.parse(sliderGroup2.value!);
-    int launch3 = int.parse(sliderGroup3.value!);
-    int launch4 = int.parse(sliderGroup4.value!);
-    int launch5 = int.parse(sliderGroup5.value!);
-    int launch6 = int.parse(sliderGroup6.value!);
-    int group = int.parse(sliderByGroup.value!);
+    int launch0 = int.parse(sliderGroup0.value);
+    int launch1 = int.parse(sliderGroup1.value);
+    int launch2 = int.parse(sliderGroup2.value);
+    int launch3 = int.parse(sliderGroup3.value);
+    int launch4 = int.parse(sliderGroup4.value);
+    int launch5 = int.parse(sliderGroup5.value);
+    int launch6 = int.parse(sliderGroup6.value);
+    int group = int.parse(sliderByGroup.value);
+
+    for (var i=0; i<7; i++) {
+      // l'indicateur passera à 0 quand on aura trouvé au moins un groupe de 10
+      colorSfLastingSeconds[i] = -1;
+    }
+    
+
+    
 
     while ((launch0 > 0) || (launch1 > 0) || (launch2 > 0) || (launch3 > 0) || (launch4 > 0) || (launch5 > 0) || (launch6 > 0)) {
       if (launch0 > 0) {
@@ -302,11 +310,11 @@ class EdilabApp {
       }
     }
 
-    Sunflower.equalityMax = int.parse(sliderEquality.value!)/100;
-    Sunflower.equalityInverse = inverseEquality.checked!;
-    Sunflower.diversityMax = int.parse(sliderDiversity.value!)/100;
-    Sunflower.inclusionMax = int.parse(sliderInclusion.value!)/100;
-    Sunflower.inclusionInverse = inverseInclusion.checked!;
+    Sunflower.equalityMax = int.parse(sliderEquality.value)/100;
+    Sunflower.equalityInverse = inverseEquality.checked;
+    Sunflower.diversityMax = int.parse(sliderDiversity.value)/100;
+    Sunflower.inclusionMax = int.parse(sliderInclusion.value)/100;
+    Sunflower.inclusionInverse = inverseInclusion.checked;
     // calcul d'un frame rate pour la boucle d'inclusion.
     if (Sunflower.inclusionMax != 0) {
       Sunflower.inclusionInterval = 10 /  Sunflower.inclusionMax;
@@ -319,26 +327,28 @@ class EdilabApp {
     autoEndMass = 0;
     stopwatch.reset();
     stopwatch.start();
+    timeTo100pctMinutes = 0;
 
     // si le déclenchement est manuel
     if (event.type != "") {
-      if (batchMode.checked!) {
+      if (batchMode.checked) {
         isBatch = true;
-        iterationsMax = max(1, int.parse(batchIterations.value!));
+        iterationsMax = max(1, int.parse(batchIterations.value));
         iterationNumber = 1;
-        autoEndMinutes = max(1, int.parse(batchAutoEnding.value!));
-        finalEndingMinutes = max(1, int.parse(batchFinalEnding.value!));
-        batchResult.hidden = false;
+        autoEndMinutes = max(1, int.parse(batchAutoEnding.value));
+        finalEndingMinutes = max(1, int.parse(batchFinalEnding.value));
+        batchResult.hidden = false.toJS;
       }
       else {
         isBatch = false;
         iterationNumber = 0;
-        batchResult.hidden = true;
+        batchResult.hidden = true.toJS;
+        autoEndMinutes = 60;
       }
-      screenResult.innerHtml = "";
-      csvLinesOutput.innerText = "";
-      csvSaveBtn.hidden = true;
-      tableOutput.innerHtml = "";
+      screenResult.innerHTML = "".toJS;
+      csvLinesOutput.innerHTML = "".toJS;
+      csvSaveBtn.hidden = true.toJS;
+      tableOutput.innerHTML = "".toJS;
     }
 
     starting = Timer(Duration(seconds: 1), promptStart);
@@ -399,7 +409,7 @@ class EdilabApp {
       freeSeedsInfo = "Le milieu libre contient $freeSeedsTotal graines de $nbColors couleurs. La couleur majoritaire est $freeSeedsColor.";
     }
 
-    prompter.innerText = "Démarrage de l'expérience. $freeSeedsInfo";
+    prompter.textContent = "Démarrage de l'expérience. $freeSeedsInfo";
   }
 
   void promptSituation(Timer t) {
@@ -410,6 +420,43 @@ class EdilabApp {
     int i = 0;
     int nbColors = 0;
     int freeSeedsTotal = 0;
+    double massTotal = 0;
+    List<int> foundColors = [0, 0, 0, 0, 0, 0, 0];
+
+    String lastingInfo = "";
+
+    for (Sunflower sf in sunflowers) {
+      massTotal += sf.mass;
+      // vérification des couleurs dominantes présentes dans les sunflowers de taille minimum 10
+      if (sf.mass > 9) {
+        foundColors[sf.maxColorIndex]++;
+        // indiquer si on a trouvé au moins un groupe de cette couleur
+        if (colorSfLastingSeconds[sf.maxColorIndex] == -1) {
+          colorSfLastingSeconds[sf.maxColorIndex] = 0;
+        }
+      }
+    }
+
+    // vérification des couleurs qui ne sont plus présentes en tant que sunflower
+    for (var i=0; i<7; i++) {
+      if (colorSfLastingSeconds[i] == 0) {
+        // la couleur a été présente en tant que sunflower
+        if (foundColors[i] == 0) {
+          // mais elle n'est plus présente en tant que sunflower
+          colorSfLastingSeconds[i] = stopwatch.elapsed.inMinutes;
+          lastingInfo = "$lastingInfo La couleur ${Seed.colorsFr[i]} n'est plus présente en tant groupe.";
+        }
+      }
+      else if (colorSfLastingSeconds[i] > 0) {
+        // la couleur a été présente en tant que sunflower et a déjà disparu au moins une fois
+        if (foundColors[i] > 0) {
+          // pourtant elle revient en tant que sunflower, donc on fait comme si elle n'avait jamais disparu
+          colorSfLastingSeconds[i] = 0;
+          lastingInfo = "$lastingInfo La couleur ${Seed.colorsFr[i]} est revenue en tant groupe.";
+        }
+      }
+    }
+
     for (int color in freeSeeds) {
       if (color > maxFreeColor) {
         maxFreeColor = color;
@@ -460,10 +507,6 @@ class EdilabApp {
     }
     else {
       if (Sunflower.currentMaxSize > 1) {
-        double massTotal = 0;
-        for (Sunflower sf in sunflowers) {
-          massTotal += sf.mass;
-        }
         freeSeedsInfo = "Le milieu libre est vide. Il y a ${sunflowers.length} groupes, totalisant ${massTotal.round()} graines.";
         if (autoEndFrom == 0) {
           autoEndFrom = stopwatch.elapsed.inMinutes;
@@ -500,6 +543,9 @@ class EdilabApp {
         sfMax1.calcDiversity(null);
         String sfMax1Color = Seed.colorsFr[sfMax1.maxColorIndex];
         int sfMax1Radius = ((sfMax1.radius / Sunflower.radiusMax) * 100).round();
+        if ((sfMax1Radius >= 100) && (timeTo100pctMinutes == 0)) {
+          timeTo100pctMinutes = stopwatch.elapsed.inMinutes;
+        }
         int sfMax1Diversity = (sfMax1.diversity * 100).round();
         maxSunflower1Info = "Le plus grand groupe est $sfMax1Color. Il contient ${sfMax1.mass} graines, son rayon est à $sfMax1Radius % du maximum et sa diversité est $sfMax1Diversity %.";
         maxSunflower1Csv = "$sfMax1Color;${sfMax1.mass};$sfMax1Radius;$sfMax1Diversity";
@@ -559,11 +605,11 @@ class EdilabApp {
     if ((!autoEndDetected) || (!isBatch)) {
       String status = "En cours.";
       if (pauseOn) status = "En pause.";
-      prompter.innerText = "$status $freeSeedsInfo $maxSunflower1Info $maxSunflower2Info $maxSunflower3Info";
+      prompter.textContent = "$status $freeSeedsInfo $maxSunflower1Info $maxSunflower2Info $maxSunflower3Info $lastingInfo";
     }
     else if (!pauseOn) {
-      pause(MouseEvent(""));
-      prompter.innerText = "Fin automatique de l'expérience.";
+      pause(web.MouseEvent(""));
+      prompter.textContent = "Fin automatique de l'expérience.";
       autoEndProcess(maxSunflower1Csv, maxSunflower2Csv, maxSunflower3Csv);
     }
   }
@@ -604,24 +650,24 @@ class EdilabApp {
     watcher.innerText = chronoDisplay;
   }
 
-  void pause(MouseEvent event) {
+  void pause(web.MouseEvent event) {
     if (pauseOn) {
       pauseOn = false;
       stopwatch.start();
-      svgSaveBtn.hidden = true;
+      svgSaveBtn.hidden = true.toJS;
     }
     else {
       pauseOn = true;
       stopwatch.stop();
-      svgSaveBtn.hidden = false;
+      svgSaveBtn.hidden = false.toJS;
     }
     // ne pas rappeler le prompt en cas de pause automatique
     if (event.type != "") promptSituation(prompting!);
   }
 
-  void stop(MouseEvent event) {
+  void stop(web.MouseEvent event) {
     pauseOn = false;
-    svgSaveBtn.hidden = true;
+    svgSaveBtn.hidden = true.toJS;
     for (Sunflower sf in sunflowers) {
       sf.emptySeeds();
     }
@@ -629,18 +675,18 @@ class EdilabApp {
 
     if ((prompting != null) && (prompting!.isActive)) {
       prompting!.cancel();
-      prompter.innerText = "Expérience arrêtée";
+      prompter.textContent = "Expérience arrêtée";
     }
 
     if ((watching != null) && (watching!.isActive)) {
       watching!.cancel();
-      watcher.innerText = "Durée de l'expérience 00:00:00";
+      watcher.textContent = "Durée de l'expérience 00:00:00";
     }
 
     stopwatch.stop();
 
     if ((csvLinesOutput.innerText != "") && (event.type != "")) {
-      csvSaveBtn.hidden = false;
+      csvSaveBtn.hidden = false.toJS;
     }
 
     sliderGroup0.disabled = false;
@@ -671,31 +717,39 @@ class EdilabApp {
     batchFinalEnding.disabled = false;
   }
 
-  void svgDownload(MouseEvent event) {
-    final data = toSvg();
-    final blob = Blob([data], "image/svg+xml");
-    final url = Url.createObjectUrlFromBlob(blob);
-    final AnchorElement a = AnchorElement();
+  void svgDownload(web.MouseEvent event) {
+    var data = JSArray<web.BlobPart>();
+    data.add(toSvg().toJS);
+    var property = web.BlobPropertyBag();
+    property.type = "image/svg+xml";
+    property.endings = "native";
+    final blob = web.Blob(data, property);
+    final url = web.URL.createObjectURL(blob);
+    final web.HTMLAnchorElement a = web.HTMLAnchorElement();
     a.href = url;
     a.download = "edilab.svg";
     batchResult.append(a);
     a.click();
-    batchResult.lastChild?.remove();
-    Url.revokeObjectUrl(url);
+    batchResult.removeChild(a);
+    web.URL.revokeObjectURL(url);
   }
 
-  void csvDownload(MouseEvent event) {
+  void csvDownload(web.MouseEvent event) {
     if (csvLinesOutput.innerText != "") {
-      final data = csvLinesOutput.innerText;
-      final blob = Blob([data], "text/csv");
-      final url = Url.createObjectUrlFromBlob(blob);
-      final AnchorElement a = AnchorElement();
+      var data = JSArray<web.BlobPart>();
+      data.add(csvLinesOutput.innerText.toJS);
+      var property = web.BlobPropertyBag();
+      property.type = "text/csv";
+      property.endings = "native";
+      final blob = web.Blob(data, property);
+      final url = web.URL.createObjectURL(blob);
+      final web.HTMLAnchorElement a = web.HTMLAnchorElement();
       a.href = url;
       a.download = "edilab.csv";
       batchResult.append(a);
       a.click();
-      batchResult.lastChild?.remove();
-      Url.revokeObjectUrl(url);
+      batchResult.removeChild(a);
+      web.URL.revokeObjectURL(url);
     }
     else {
       csvLinesOutput.innerText = "Contenu vide !";
@@ -724,19 +778,19 @@ class EdilabApp {
     final ediSettings = "${sliderEquality.value};${inverseEquality.checked};${sliderDiversity.value};${sliderInclusion.value};${inverseEquality.checked}";
 
     String sizeSetting = "";
-    if (scaleWorldXL.checked!) {
+    if (scaleWorldXL.checked) {
       sizeSetting = "XL";
     }
-    else if (scaleWorldL.checked!) {
+    else if (scaleWorldL.checked) {
       sizeSetting = "L";
     }
-    else if (scaleWorldM.checked!) {
+    else if (scaleWorldM.checked) {
       sizeSetting = "M";
     }
-    else if (scaleWorldS.checked!) {
+    else if (scaleWorldS.checked) {
       sizeSetting = "S";
     }
-    else if (scaleWorldXS.checked!) {
+    else if (scaleWorldXS.checked) {
       sizeSetting = "XS";
     }
 
@@ -746,103 +800,146 @@ class EdilabApp {
     final max1headers = "groupe 1 couleur;groupe 1 masse;groupe 1 rayon;groupe 1 diversité";
     final max2headers = "groupe 2 couleur;groupe 2 masse;groupe 2 rayon;groupe 2 diversité";
     final max3headers = "groupe 3 couleur;groupe 3 masse;groupe 3 rayon;groupe 3 diversité";
+    final lastingHeaders = "Perte de couleur 1;Perte de couleur 2;Perte de couleur 3;Perte de couleur 4;Perte de couleur 5;Perte de couleur 6";
+    final to100pctHeaders = "durée groupe 1 100%";
     final endingGlobals = "$sizeSetting;$nbGroups;${massTotal.round()};${stopwatch.elapsed.inMinutes};${dayhour.toIso8601String()}";
-    final csvHeaders = "$initialGroupsHeaders;$ediSettingsHeaders;$endingGroupsHeaders;$endingGlobalsHeaders;$max1headers;$max2headers;$max3headers";
-    final csvLine = "$initialGroups;$ediSettings;$endingGroups;$endingGlobals;$max1csv;$max2csv;$max3csv";
+    final csvHeaders = "$initialGroupsHeaders;$ediSettingsHeaders;$endingGroupsHeaders;$endingGlobalsHeaders;$max1headers;$max2headers;$max3headers;$lastingHeaders;$to100pctHeaders";
+    
 
     if (iterationNumber == 1) {
       csvLinesOutput.innerText = csvHeaders;
       var th = tableOutput.createTHead();
-      th.insertRow(-1)..insertCell(0).text = "${Seed.colorsFr[0]} début"
-        ..insertCell(1).text = "${Seed.colorsFr[1]} début"
-        ..insertCell(2).text = "${Seed.colorsFr[2]} début"
-        ..insertCell(3).text = "${Seed.colorsFr[3]} début"
-        ..insertCell(4).text = "${Seed.colorsFr[4]} début"
-        ..insertCell(5).text = "${Seed.colorsFr[5]} début"
-        ..insertCell(6).text = "${Seed.colorsFr[6]} début"
-        ..insertCell(7).text = "par groupes"
-        ..insertCell(8).text = "égalité"
-        ..insertCell(9).text = "inversée"
-        ..insertCell(10).text = "diversité"
-        ..insertCell(11).text = "inclusion"
-        ..insertCell(12).text = "inversée"
-        ..insertCell(13).text = "${Seed.colorsFr[0]} fin"
-        ..insertCell(14).text = "${Seed.colorsFr[1]} fin"
-        ..insertCell(15).text = "${Seed.colorsFr[2]} fin"
-        ..insertCell(16).text = "${Seed.colorsFr[3]} fin"
-        ..insertCell(17).text = "${Seed.colorsFr[4]} fin"
-        ..insertCell(18).text = "${Seed.colorsFr[5]} fin"
-        ..insertCell(19).text = "${Seed.colorsFr[6]} fin"
-        ..insertCell(20).text = "taille"
-        ..insertCell(21).text = "nombre de groupes"
-        ..insertCell(22).text = "masse totale"
-        ..insertCell(23).text = "durée minutes"
-        ..insertCell(24).text = "date et heure"
-        ..insertCell(25).text = "groupe 1 couleur"
-        ..insertCell(26).text = "groupe 1 masse"
-        ..insertCell(27).text = "groupe 1 rayon"
-        ..insertCell(28).text = "groupe 1 diversité"
-        ..insertCell(29).text = "groupe 2 couleur"
-        ..insertCell(30).text = "groupe 2 masse"
-        ..insertCell(31).text = "groupe 2 rayon"
-        ..insertCell(32).text = "groupe 2 diversité"
-        ..insertCell(33).text = "groupe 3 couleur"
-        ..insertCell(34).text = "groupe 3 masse"
-        ..insertCell(35).text = "groupe 3 rayon"
-        ..insertCell(36).text = "groupe 3 diversité";
+      th.insertRow(-1)..insertCell(0).textContent = "${Seed.colorsFr[0]} début"
+        ..insertCell(1).textContent = "${Seed.colorsFr[1]} début"
+        ..insertCell(2).textContent = "${Seed.colorsFr[2]} début"
+        ..insertCell(3).textContent = "${Seed.colorsFr[3]} début"
+        ..insertCell(4).textContent = "${Seed.colorsFr[4]} début"
+        ..insertCell(5).textContent = "${Seed.colorsFr[5]} début"
+        ..insertCell(6).textContent = "${Seed.colorsFr[6]} début"
+        ..insertCell(7).textContent = "par groupes"
+        ..insertCell(8).textContent = "égalité"
+        ..insertCell(9).textContent = "inversée"
+        ..insertCell(10).textContent = "diversité"
+        ..insertCell(11).textContent = "inclusion"
+        ..insertCell(12).textContent = "inversée"
+        ..insertCell(13).textContent = "${Seed.colorsFr[0]} fin"
+        ..insertCell(14).textContent = "${Seed.colorsFr[1]} fin"
+        ..insertCell(15).textContent = "${Seed.colorsFr[2]} fin"
+        ..insertCell(16).textContent = "${Seed.colorsFr[3]} fin"
+        ..insertCell(17).textContent = "${Seed.colorsFr[4]} fin"
+        ..insertCell(18).textContent = "${Seed.colorsFr[5]} fin"
+        ..insertCell(19).textContent = "${Seed.colorsFr[6]} fin"
+        ..insertCell(20).textContent = "taille"
+        ..insertCell(21).textContent = "nombre de groupes"
+        ..insertCell(22).textContent = "masse totale"
+        ..insertCell(23).textContent = "durée minutes"
+        ..insertCell(24).textContent = "date et heure"
+        ..insertCell(25).textContent = "groupe 1 couleur"
+        ..insertCell(26).textContent = "groupe 1 masse"
+        ..insertCell(27).textContent = "groupe 1 rayon"
+        ..insertCell(28).textContent = "groupe 1 diversité"
+        ..insertCell(29).textContent = "groupe 2 couleur"
+        ..insertCell(30).textContent = "groupe 2 masse"
+        ..insertCell(31).textContent = "groupe 2 rayon"
+        ..insertCell(32).textContent = "groupe 2 diversité"
+        ..insertCell(33).textContent = "groupe 3 couleur"
+        ..insertCell(34).textContent = "groupe 3 masse"
+        ..insertCell(35).textContent = "groupe 3 rayon"
+        ..insertCell(36).textContent = "groupe 3 diversité"
+        ..insertCell(37).textContent = "Perte de couleur 1"
+        ..insertCell(38).textContent = "Perte de couleur 2"
+        ..insertCell(39).textContent = "Perte de couleur 3"
+        ..insertCell(40).textContent = "Perte de couleur 4"
+        ..insertCell(41).textContent = "Perte de couleur 5"
+        ..insertCell(42).textContent = "Perte de couleur 6"
+        ..insertCell(43).textContent = "durée groupe 1 100%"
+        ;
 
-      for (var i=0; i<37; i++) {
-        th.rows[0].cells[i].attributes["scope"] = "col";
+      
+      for (var i = th.rows.item(0)!.children.length - 1; i >= 0; --i) {
+        th.rows.item(0)!.children.item(i)!.attributes.getNamedItem("scope")?.value = "col";
       }
 
-      var tb = tableOutput.createTBody();
+      tableOutput.createTBody();
       var tf = tableOutput.createTFoot();
       tf.insertRow(-1);
-      for (var i=0; i<37; i++) {
-        tf.rows[0].insertCell(i);
+      for (var i=0; i<44; i++) {
+        (tf.rows.item(0) as web.HTMLTableRowElement).insertCell(i);
       }
     }
+
+    colorSfLastingSeconds.sort();
+    List<int> lastingColors = [];
+    int thereColorSf = 0;
+    for (int lasting in colorSfLastingSeconds) {
+      if (lasting > 0) {
+        lastingColors.add(lasting);
+      }
+      else if (lasting == 0) {
+        thereColorSf++;
+      }
+    }
+
+    for (var i=0; i<thereColorSf; i++) {
+      lastingColors.add(stopwatch.elapsed.inMinutes);
+    }
+
+    int lastingColorsLength = lastingColors.length;
+
+    for (var i=0; i<6-lastingColorsLength; i++) {
+      lastingColors.add(0);
+    }
+
+    final csvLine = "$initialGroups;$ediSettings;$endingGroups;$endingGlobals;$max1csv;$max2csv;$max3csv;${lastingColors[0]};${lastingColors[1]};${lastingColors[2]};${lastingColors[3]};${lastingColors[4]};${lastingColors[5]};$timeTo100pctMinutes";
 
     final List<String> g1m = max1csv.split(";");
     final List<String> g2m = max2csv.split(";");
     final List<String> g3m = max3csv.split(";");
-    tableOutput.tBodies[0].insertRow(-1)..insertCell(0).text = sliderGroup0.value
-      ..insertCell(1).text = sliderGroup1.value
-      ..insertCell(2).text = sliderGroup2.value
-      ..insertCell(3).text = sliderGroup3.value
-      ..insertCell(4).text = sliderGroup4.value
-      ..insertCell(5).text = sliderGroup5.value
-      ..insertCell(6).text = sliderGroup6.value
-      ..insertCell(7).text = sliderByGroup.value
-      ..insertCell(8).text = sliderEquality.value
-      ..insertCell(9).text = inverseEquality.checked.toString()
-      ..insertCell(10).text = sliderDiversity.value
-      ..insertCell(11).text = sliderInclusion.value
-      ..insertCell(12).text = inverseInclusion.checked.toString()
-      ..insertCell(13).text = allColors[0].toString()
-      ..insertCell(14).text = allColors[1].toString()
-      ..insertCell(15).text = allColors[2].toString()
-      ..insertCell(16).text = allColors[3].toString()
-      ..insertCell(17).text = allColors[4].toString()
-      ..insertCell(18).text = allColors[5].toString()
-      ..insertCell(19).text = allColors[6].toString()
-      ..insertCell(20).text = sizeSetting
-      ..insertCell(21).text = nbGroups.toString()
-      ..insertCell(22).text = massTotal.round().toString()
-      ..insertCell(23).text = stopwatch.elapsed.inMinutes.toString()
-      ..insertCell(24).text = dayhour.toIso8601String()
-      ..insertCell(25).text = g1m[0]
-      ..insertCell(26).text = g1m[1]
-      ..insertCell(27).text = g1m[2]
-      ..insertCell(28).text = g1m[3]
-      ..insertCell(29).text = g2m[0]
-      ..insertCell(30).text = g2m[1]
-      ..insertCell(31).text = g2m[2]
-      ..insertCell(32).text = g2m[3]
-      ..insertCell(33).text = g3m[0]
-      ..insertCell(34).text = g3m[1]
-      ..insertCell(35).text = g3m[2]
-      ..insertCell(36).text = g3m[3];
+    (tableOutput.tBodies.item(0) as web.HTMLTableSectionElement).insertRow(-1)..insertCell(0).textContent = sliderGroup0.value
+      ..insertCell(1).textContent = sliderGroup1.value
+      ..insertCell(2).textContent = sliderGroup2.value
+      ..insertCell(3).textContent = sliderGroup3.value
+      ..insertCell(4).textContent = sliderGroup4.value
+      ..insertCell(5).textContent = sliderGroup5.value
+      ..insertCell(6).textContent = sliderGroup6.value
+      ..insertCell(7).textContent = sliderByGroup.value
+      ..insertCell(8).textContent = sliderEquality.value
+      ..insertCell(9).textContent = inverseEquality.checked.toString()
+      ..insertCell(10).textContent = sliderDiversity.value
+      ..insertCell(11).textContent = sliderInclusion.value
+      ..insertCell(12).textContent = inverseInclusion.checked.toString()
+      ..insertCell(13).textContent = allColors[0].toString()
+      ..insertCell(14).textContent = allColors[1].toString()
+      ..insertCell(15).textContent = allColors[2].toString()
+      ..insertCell(16).textContent = allColors[3].toString()
+      ..insertCell(17).textContent = allColors[4].toString()
+      ..insertCell(18).textContent = allColors[5].toString()
+      ..insertCell(19).textContent = allColors[6].toString()
+      ..insertCell(20).textContent = sizeSetting
+      ..insertCell(21).textContent = nbGroups.toString()
+      ..insertCell(22).textContent = massTotal.round().toString()
+      ..insertCell(23).textContent = stopwatch.elapsed.inMinutes.toString()
+      ..insertCell(24).textContent = dayhour.toIso8601String()
+      ..insertCell(25).textContent = g1m[0]
+      ..insertCell(26).textContent = g1m[1]
+      ..insertCell(27).textContent = g1m[2]
+      ..insertCell(28).textContent = g1m[3]
+      ..insertCell(29).textContent = g2m[0]
+      ..insertCell(30).textContent = g2m[1]
+      ..insertCell(31).textContent = g2m[2]
+      ..insertCell(32).textContent = g2m[3]
+      ..insertCell(33).textContent = g3m[0]
+      ..insertCell(34).textContent = g3m[1]
+      ..insertCell(35).textContent = g3m[2]
+      ..insertCell(36).textContent = g3m[3]
+      ..insertCell(37).textContent = lastingColors[0].toString()
+      ..insertCell(38).textContent = lastingColors[1].toString()
+      ..insertCell(39).textContent = lastingColors[2].toString()
+      ..insertCell(40).textContent = lastingColors[3].toString()
+      ..insertCell(41).textContent = lastingColors[4].toString()
+      ..insertCell(42).textContent = lastingColors[5].toString()
+      ..insertCell(43).textContent = timeTo100pctMinutes.toString()
+      ;
 
     int debut0 = 0;
     int debut1 = 0;
@@ -873,87 +970,109 @@ class EdilabApp {
     int gr3r = 0;
     int gr3d = 0;
     int gr3iterations = 0;
+    int lasting1 = 0;
+    int lasting2 = 0; 
+    int lasting3 = 0;
+    int lasting4 = 0;
+    int lasting5 = 0;
+    int lasting6 = 0;
+    int to100pct = 0;
 
-    for (TableRowElement r in tableOutput.tBodies[0].rows) {
-      debut0 += int.parse(r.cells[0].innerText);
-      debut1 += int.parse(r.cells[1].innerText);
-      debut2 += int.parse(r.cells[2].innerText);
-      debut3 += int.parse(r.cells[3].innerText);
-      debut4 += int.parse(r.cells[4].innerText);
-      debut5 += int.parse(r.cells[5].innerText);
-      debut6 += int.parse(r.cells[6].innerText);
-      fin0 += int.parse(r.cells[13].innerText);
-      fin1 += int.parse(r.cells[14].innerText);
-      fin2 += int.parse(r.cells[15].innerText);
-      fin3 += int.parse(r.cells[16].innerText);
-      fin4 += int.parse(r.cells[17].innerText);
-      fin5 += int.parse(r.cells[18].innerText);
-      fin6 += int.parse(r.cells[19].innerText);
-      nSf += int.parse(r.cells[21].innerText);
-      mSf += int.parse(r.cells[22].innerText);
-      elapsedExp += int.parse(r.cells[23].innerText);
-      if (r.cells[26].innerText != "") {
-        gr1m += int.parse(r.cells[26].innerText);
+    //for (var r in tableOutput.tBodies.item(0)!.children) {
+    web.HTMLTableSectionElement tb = tableOutput.tBodies.item(0) as web.HTMLTableSectionElement;
+    for (var i = tb.rows.length - 1; i >= 0; --i) {
+      web.HTMLTableRowElement r = tb.rows.item(i) as web.HTMLTableRowElement;
+      debut0 += int.parse(r.cells.item(0)!.textContent!);
+      debut1 += int.parse(r.cells.item(1)!.textContent!);
+      debut2 += int.parse(r.cells.item(2)!.textContent!);
+      debut3 += int.parse(r.cells.item(3)!.textContent!);
+      debut4 += int.parse(r.cells.item(4)!.textContent!);
+      debut5 += int.parse(r.cells.item(5)!.textContent!);
+      debut6 += int.parse(r.cells.item(6)!.textContent!);
+      fin0 += int.parse(r.cells.item(13)!.textContent!);
+      fin1 += int.parse(r.cells.item(14)!.textContent!);
+      fin2 += int.parse(r.cells.item(15)!.textContent!);
+      fin3 += int.parse(r.cells.item(16)!.textContent!);
+      fin4 += int.parse(r.cells.item(17)!.textContent!);
+      fin5 += int.parse(r.cells.item(18)!.textContent!);
+      fin6 += int.parse(r.cells.item(19)!.textContent!);
+      nSf += int.parse(r.cells.item(21)!.textContent!);
+      mSf += int.parse(r.cells.item(22)!.textContent!);
+      elapsedExp += int.parse(r.cells.item(23)!.textContent!);
+      if (r.cells.item(26)!.textContent != "") {
+        gr1m += int.parse(r.cells.item(26)!.textContent!);
         gr1iterations++;
       }
-      if (r.cells[27].innerText != "") gr1r += int.parse(r.cells[27].innerText);
-      if (r.cells[28].innerText != "") gr1d += int.parse(r.cells[28].innerText);
-      if (r.cells[30].innerText != "") {
-        gr2m += int.parse(r.cells[30].innerText);
+      if (r.cells.item(27)!.textContent != "") gr1r += int.parse(r.cells.item(27)!.textContent!);
+      if (r.cells.item(28)!.textContent != "") gr1d += int.parse(r.cells.item(28)!.textContent!);
+      if (r.cells.item(30)!.textContent != "") {
+        gr2m += int.parse(r.cells.item(30)!.textContent!);
         gr2iterations++;
       }
-      if (r.cells[31].innerText != "") gr2r += int.parse(r.cells[31].innerText);
-      if (r.cells[32].innerText != "") gr2d += int.parse(r.cells[32].innerText);
-      if (r.cells[34].innerText != "") {
-        gr3m += int.parse(r.cells[34].innerText);
+      if (r.cells.item(31)!.textContent != "") gr2r += int.parse(r.cells.item(31)!.textContent!);
+      if (r.cells.item(32)!.textContent != "") gr2d += int.parse(r.cells.item(32)!.textContent!);
+      if (r.cells.item(34)!.textContent != "") {
+        gr3m += int.parse(r.cells.item(34)!.textContent!);
         gr3iterations++;
       }
-      if (r.cells[35].innerText != "") gr3r += int.parse(r.cells[35].innerText);
-      if (r.cells[36].innerText != "") gr3d += int.parse(r.cells[36].innerText);
+      if (r.cells.item(35)!.textContent != "") gr3r += int.parse(r.cells.item(35)!.textContent!);
+      if (r.cells.item(36)!.textContent != "") gr3d += int.parse(r.cells.item(36)!.textContent!);
+      lasting1 += int.parse(r.cells.item(37)!.textContent!);
+      lasting2 += int.parse(r.cells.item(38)!.textContent!);
+      lasting3 += int.parse(r.cells.item(39)!.textContent!);
+      lasting4 += int.parse(r.cells.item(40)!.textContent!);
+      lasting5 += int.parse(r.cells.item(41)!.textContent!);
+      lasting6 += int.parse(r.cells.item(42)!.textContent!);
+      to100pct += int.parse(r.cells.item(43)!.textContent!);
     }
 
-    tableOutput.tFoot!.rows[0].cells[0].innerText = (debut0/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[1].innerText = (debut1/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[2].innerText = (debut2/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[3].innerText = (debut3/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[4].innerText = (debut4/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[5].innerText = (debut5/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[6].innerText = (debut6/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[13].innerText = (fin0/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[14].innerText = (fin1/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[15].innerText = (fin2/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[16].innerText = (fin3/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[17].innerText = (fin4/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[18].innerText = (fin5/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[19].innerText = (fin6/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[21].innerText = ((nSf*100/iterationNumber).round()/100).toString();
-    tableOutput.tFoot!.rows[0].cells[22].innerText = (mSf/iterationNumber).round().toString();
-    tableOutput.tFoot!.rows[0].cells[23].innerText = "${(elapsedExp/iterationNumber).floor()}' ${(((elapsedExp/iterationNumber)%1)*60).round()}''";
+    tableOutput.tFoot!.rows.item(0)!.children.item(0)!.textContent = (debut0/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(1)!.textContent = (debut1/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(2)!.textContent = (debut2/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(3)!.textContent = (debut3/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(4)!.textContent = (debut4/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(5)!.textContent = (debut5/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(6)!.textContent = (debut6/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(13)!.textContent = (fin0/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(14)!.textContent = (fin1/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(15)!.textContent = (fin2/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(16)!.textContent = (fin3/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(17)!.textContent = (fin4/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(18)!.textContent = (fin5/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(19)!.textContent = (fin6/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(21)!.textContent = ((nSf*100/iterationNumber).round()/100).toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(22)!.textContent = (mSf/iterationNumber).round().toString();
+    tableOutput.tFoot!.rows.item(0)!.children.item(23)!.textContent = "${(elapsedExp/iterationNumber).floor()}' ${(((elapsedExp/iterationNumber)%1)*60).round()}''";
     if (gr1iterations > 0) {
-      tableOutput.tFoot!.rows[0].cells[26].innerText = (gr1m/gr1iterations).round().toString();
-      tableOutput.tFoot!.rows[0].cells[27].innerText = (gr1r/gr1iterations).round().toString();
-      tableOutput.tFoot!.rows[0].cells[28].innerText = (gr1d/gr1iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(26)!.textContent = (gr1m/gr1iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(27)!.textContent = (gr1r/gr1iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(28)!.textContent = (gr1d/gr1iterations).round().toString();
     }
     if (gr2iterations > 0) {
-      tableOutput.tFoot!.rows[0].cells[30].innerText = (gr2m/gr2iterations).round().toString();
-      tableOutput.tFoot!.rows[0].cells[31].innerText = (gr2r/gr2iterations).round().toString();
-      tableOutput.tFoot!.rows[0].cells[32].innerText = (gr2d/gr2iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(30)!.textContent = (gr2m/gr2iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(31)!.textContent = (gr2r/gr2iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(32)!.textContent = (gr2d/gr2iterations).round().toString();
     }
     if (gr3iterations > 0) {
-      tableOutput.tFoot!.rows[0].cells[34].innerText = (gr3m/gr3iterations).round().toString();
-      tableOutput.tFoot!.rows[0].cells[35].innerText = (gr3r/gr3iterations).round().toString();
-      tableOutput.tFoot!.rows[0].cells[36].innerText = (gr3d/gr3iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(34)!.textContent = (gr3m/gr3iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(35)!.textContent = (gr3r/gr3iterations).round().toString();
+      tableOutput.tFoot!.rows.item(0)!.children.item(36)!.textContent = (gr3d/gr3iterations).round().toString();
     }
-    
-
+    tableOutput.tFoot!.rows.item(0)!.children.item(37)!.textContent = "${(lasting1/iterationNumber).floor()}' ${(((lasting1/iterationNumber)%1)*60).round()}''";
+    tableOutput.tFoot!.rows.item(0)!.children.item(38)!.textContent = "${(lasting2/iterationNumber).floor()}' ${(((lasting2/iterationNumber)%1)*60).round()}''";
+    tableOutput.tFoot!.rows.item(0)!.children.item(39)!.textContent = "${(lasting3/iterationNumber).floor()}' ${(((lasting3/iterationNumber)%1)*60).round()}''";
+    tableOutput.tFoot!.rows.item(0)!.children.item(40)!.textContent = "${(lasting4/iterationNumber).floor()}' ${(((lasting4/iterationNumber)%1)*60).round()}''";
+    tableOutput.tFoot!.rows.item(0)!.children.item(41)!.textContent = "${(lasting5/iterationNumber).floor()}' ${(((lasting5/iterationNumber)%1)*60).round()}''";
+    tableOutput.tFoot!.rows.item(0)!.children.item(42)!.textContent = "${(lasting6/iterationNumber).floor()}' ${(((lasting6/iterationNumber)%1)*60).round()}''";
+    tableOutput.tFoot!.rows.item(0)!.children.item(43)!.textContent = "${(to100pct/iterationNumber).floor()}' ${(((to100pct/iterationNumber)%1)*60).round()}''";
     csvLinesOutput.innerText += String.fromCharCode(13);
     csvLinesOutput.innerText += csvLine;
 
 
 
-    final LIElement screenItem = LIElement();
+    final web.HTMLLIElement screenItem = web.HTMLLIElement();
 
-    final SpanElement dh = SpanElement();
+    final web.HTMLSpanElement dh = web.HTMLSpanElement();
     String dateStr = dayhour.toIso8601String().substring(0, 19);
     dateStr = dateStr.replaceAll(RegExp(r'T'), "_");
     dateStr = dateStr.replaceAll(RegExp(r'-'), "");
@@ -971,31 +1090,33 @@ class EdilabApp {
     else {
       dataStr = _canvas.toDataUrl('image/jpeg', 0.92);
     }
-    final ImageElement sc = ImageElement();
+    final web.HTMLImageElement sc = web.HTMLImageElement();
     sc.width = _width;
     sc.height = _height;
     sc.src = dataStr;
 
+    final web.HTMLBRElement br = web.HTMLBRElement();
+
     // ajouter le screenshot à la liste
     screenItem.append(sc);
-    screenItem.append(BRElement());
+    screenItem.append(br);
     screenItem.append(dh);
     screenResult.append(screenItem);
 
     if (iterationNumber < iterationsMax) {
       iterationNumber++;
-      start(MouseEvent(""));
+      start(web.MouseEvent(""));
     }
     else {
-      stop(MouseEvent(""));
+      stop(web.MouseEvent(""));
       final StringBuffer sb = StringBuffer(String.fromCharCode(13));
-      sb.write(tableOutput.tFoot!.rows[0].cells[0].innerText);
-      for (var i=1; i<36; i++) {
+      sb.write(tableOutput.tFoot!.rows.item(0)!.children.item(0)!.textContent);
+      for (var i=1; i<44; i++) {
         sb..write(";")
-            ..write(tableOutput.tFoot!.rows[0].cells[i].innerText);
+            ..write(tableOutput.tFoot!.rows.item(0)!.children.item(i)!.textContent);
       }
       csvLinesOutput.innerText += sb.toString();
-      csvSaveBtn.hidden = false;
+      csvSaveBtn.hidden = false.toJS;
     }
   }
 
@@ -1014,7 +1135,7 @@ class EdilabApp {
     return buffer.toString();
   }
 
-  void goFullscreen(MouseEvent event) {
+  void goFullscreen(web.MouseEvent event) {
     _canvas.requestFullscreen();
   }
 
@@ -1033,6 +1154,8 @@ class EdilabApp {
 
     sf.velocity = Vector2.random() * (Random().nextDouble() - 0.5) * power;
     sf.velocityAngular = 0.02 - ((4 * Random().nextDouble())/100);
+
+    sf.maxColorIndex = colorIndex;
   }
 
   void launchNewSunflowers(int sunflowersMax, Vector2 position, double radius, int colorIndex, int colorIndex2) {
@@ -1055,6 +1178,7 @@ class EdilabApp {
       }
       final Seed s = Seed(1, color, _ctx2d);
       sf.addSeed(s);
+      sf.maxColorIndex = color;
     }
   }
 
@@ -1225,11 +1349,11 @@ class EdilabApp {
       }
     }
     // fin de l'itération sunflowers
-    if (newSunflowers.length > 0) {
+    if (newSunflowers.isNotEmpty) {
       sunflowers.addAll(newSunflowers);
       newSunflowers.clear();
     }
-    if (emptySfIndex.length > 0) {
+    if (emptySfIndex.isNotEmpty) {
       for (int index in emptySfIndex) {
         sunflowers.removeWhere((sunflower) => sunflower.index == index);
       }
@@ -1237,17 +1361,17 @@ class EdilabApp {
     }
   }
 
-  void refreshScreen(num delta) {
+  void refreshScreen(num time) {
     num time = DateTime
         .now()
         .millisecondsSinceEpoch;
     if (_renderTime >= 0) {
-      num fps = (1000 / (time - _renderTime));
+      //num fps = (1000 / (time - _renderTime));
     }
     _renderTime = time;
     if (!pauseOn) draw();
 
-    window.animationFrame.then(refreshScreen);
+    web.window.requestAnimationFrame(refreshScreen.toJS);
   }
 
   void debug() {
@@ -1256,7 +1380,7 @@ class EdilabApp {
     }
   }
 
-  void keyboardAction(KeyboardEvent event) {
+  void keyboardAction(web.KeyboardEvent event) {
     print("key pressed :  ${event.keyCode.toString()}");
 
     switch (event.keyCode) {

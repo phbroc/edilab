@@ -1,13 +1,15 @@
+import 'dart:js_interop';
+
 import 'seed.dart';
 import 'dart:math';
-import 'dart:html';
+import 'package:web/web.dart' as web;
 import 'package:vector_math/vector_math.dart';
 
 class Sunflower {
   int index;
   // relative index permet d'identifier le sunflower en relation dans le cas de la fusion
   int? relativeIndex;
-  CanvasRenderingContext2D canvas;
+  web.CanvasRenderingContext2D canvas;
 
   double orientation = 0.0;
   Vector2 position = Vector2.zero();
@@ -35,10 +37,10 @@ class Sunflower {
 
   static Vector2 positionMax = Vector2(0.0, 0.0);
   static double radiusMax = 0;
-  static num TAU = pi * 2;
-  static num PHI = (sqrt(5) + 1) / 2;
-  static num SPIRALDIM = 4;
-  static num EFFECTDIM = 1;
+  static num tau = pi * 2;
+  static num phi = (sqrt(5) + 1) / 2;
+  static num spiralDim = 4;
+  static num effectDim = 1;
 
   static num diversityMax = 0;
   static num equalityMax = 0;
@@ -58,7 +60,7 @@ class Sunflower {
   Sunflower (this.index, this.canvas);
 
   int? getRandomColorIndex() {
-    if (seeds.length > 0) {
+    if (seeds.isNotEmpty) {
       int seedPosition = (seeds.length * Random().nextDouble()).floor();
       final Seed  s = seeds.elementAt(seedPosition);
       return s.colorIndex;
@@ -168,7 +170,7 @@ class Sunflower {
     int i = 0;
 
     for (int group in groups) {
-      if ((withGroups != null) && (i < withGroups.length) && (withGroups[i] != null)) {
+      if ((withGroups != null) && (i < withGroups.length)) { // && (withGroups[i] != null)) always true
         fusionGroup = group + withGroups[i];
         withMass += withGroups[i];
       }
@@ -219,8 +221,8 @@ class Sunflower {
     double theta = 0.0;
     if (!blindOn) {
       for (Seed s in seeds) {
-        theta = (i * TAU / PHI) + orientation;
-        r = sqrt(i) * SPIRALDIM;
+        theta = (i * tau / phi) + orientation;
+        r = sqrt(i) * spiralDim;
         s.posX = position.x + (r * cos(theta));
         s.posY = position.y + (r * sin(theta));
         s.draw();
@@ -228,34 +230,34 @@ class Sunflower {
       }
     }
     else {
-      r = sqrt(seeds.length - 1) * SPIRALDIM;
+      r = sqrt(seeds.length - 1) * spiralDim;
     }
 
     // radius minimum pour permettre de détecter des collisions
-    radius = r + Seed.SEED_RADIUS;
+    radius = r + Seed.seedRadius;
 
     if ((contactAlpha > 0) && (contactRadius > 0) && (!blindOn)) {
       switch (contactMode) {
         case 1 : canvas..beginPath()
-          ..setFillColorRgb(255, 255, 255, contactAlpha)
-          ..arc(contact.x, contact.y, contactRadius, 0, TAU, false)
+          ..fillStyle = "rgba(255, 255, 255, $contactAlpha)".toJS
+          ..arc(contact.x, contact.y, contactRadius, 0, tau, false)
           ..closePath()
           ..fill();
           contactAlpha -= 0.03;
-          contactRadius += 0.2 * EFFECTDIM;
+          contactRadius += 0.2 * effectDim;
           break;
         case 2 : canvas..beginPath()
-          ..lineWidth = EFFECTDIM
-          ..setStrokeColorRgb(255, 255, 255, contactAlpha)
-          ..arc(contact.x, contact.y, contactRadius, 0, TAU, false)
+          ..lineWidth = effectDim
+          ..strokeStyle = "rgba(255, 255, 255, $contactAlpha)".toJS
+          ..arc(contact.x, contact.y, contactRadius, 0, tau, false)
           ..closePath()
           ..stroke();
           contactAlpha -= 0.03;
-          contactRadius += EFFECTDIM;
+          contactRadius += effectDim;
           break;
         case 3 : canvas..beginPath()
-          ..lineWidth = EFFECTDIM
-          ..setStrokeColorRgb(255, 255, 255, contactAlpha)
+          ..lineWidth = effectDim
+          ..strokeStyle = "rgba(255, 255, 255, $contactAlpha)".toJS
           ..moveTo(contact.x - (contactRadius/4), contact.y - (contactRadius / 4))
           ..lineTo(contact.x + (contactRadius/4), contact.y + (contactRadius / 4))
           ..moveTo(contact.x + (contactRadius/4), contact.y - (contactRadius / 4))
@@ -263,7 +265,7 @@ class Sunflower {
           ..closePath()
           ..stroke();
           contactAlpha -= 0.03;
-          contactRadius += EFFECTDIM;
+          contactRadius += effectDim;
           break;
       }
     }
@@ -406,14 +408,14 @@ class Sunflower {
         case 1 : buffer..write('<circle cx="$cx" cy="$cy" r="$cr" fill="white" fill-opacity="$ca" />')
           ..write(String.fromCharCode(13));
         break;
-        case 2 : buffer..write('<circle cx="$cx" cy="$cy" r="$cr" fill="none" stroke="white" stroke-opacity="$ca" stroke-width="${EFFECTDIM.round()}"/>')
+        case 2 : buffer..write('<circle cx="$cx" cy="$cy" r="$cr" fill="none" stroke="white" stroke-opacity="$ca" stroke-width="${effectDim.round()}"/>')
           ..write(String.fromCharCode(13));
         break;
         case 3 : final int x1 = (contact.x - (contactRadius/4)).round();
           final int y1 = (contact.y - (contactRadius / 4)).round();
           final int x2 = (contact.x + (contactRadius/4)).round();
           final int y2 = (contact.y + (contactRadius / 4)).round();
-          buffer..write('<g stroke="white" stroke-width="${EFFECTDIM.round()}" stroke-opacity="$ca">')
+          buffer..write('<g stroke="white" stroke-width="${effectDim.round()}" stroke-opacity="$ca">')
             ..write(String.fromCharCode(13))
             ..write('<line x1="$x1" y1="$y1" x2="$x2" y2="$y2"/>')
             ..write(String.fromCharCode(13))

@@ -1,5 +1,7 @@
+import 'dart:js_interop';
+
 import 'sunflower.dart';
-import 'dart:html';
+import 'package:web/web.dart' as web;
 import 'dart:math';
 import 'package:vector_math/vector_math.dart';
 
@@ -7,7 +9,7 @@ class Seed {
   int index;
   int colorIndex;
   String color = "white";
-  CanvasRenderingContext2D canvas;
+  web.CanvasRenderingContext2D canvas;
   Sunflower? sunflower;
   num posX = 0;
   num posY = 0;
@@ -15,8 +17,8 @@ class Seed {
   num vecY = 0;
   static Vector2 positionMax = Vector2(0.0, 0.0);
 
-  static num SEED_RADIUS = 2;
-  static num TAU = pi * 2;
+  static num seedRadius = 2;
+  static num tau = pi * 2;
 
   static List<String> colors = <String>["red", "blue", "yellow", "hotpink", "darkturquoise", "sienna", "dimgray"];
   static List<String> colorsFr = <String>["rouge", "bleu", "jaune", "rose", "turquoise", "brun", "gris"];
@@ -29,8 +31,8 @@ class Seed {
     posX = posX % positionMax.x;
     posY = posY % positionMax.y;
     canvas..beginPath()
-      ..fillStyle = color
-      ..arc(posX, posY, SEED_RADIUS, 0, TAU, false)
+      ..fillStyle = color.toJS
+      ..arc(posX, posY, seedRadius, 0, tau, false)
       ..closePath()
       ..fill();
   }
@@ -48,6 +50,6 @@ class Seed {
   }
 
   String toSvg() {
-    return '<circle cx="${shortNumber(posX)}" cy="${shortNumber(posY)}" r="${shortNumber(SEED_RADIUS)}" fill="$color" />';
+    return '<circle cx="${shortNumber(posX)}" cy="${shortNumber(posY)}" r="${shortNumber(seedRadius)}" fill="$color" />';
   }
 }
