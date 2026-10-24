@@ -22,3 +22,8 @@
 
 - Bugfix with count sunflowers at the end
 - Recalculate groups of colors when purge stopped before the end
+
+## 1.3.1
+
+- Upgrade source code to Dart 3
+- More analysis informations with more columns in batch mode (time before color disappears)
